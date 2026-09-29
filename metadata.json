@@ -1,0 +1,6 @@
+{
+  "name": "444 — SIGNAL DETECTED",
+  "description": "Three numbers. One signal. You weren't supposed to find this.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
