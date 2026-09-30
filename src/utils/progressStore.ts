@@ -3,6 +3,8 @@
  * Persists puzzle completion and discovered evidence to localStorage.
  */
 
+import { CENTRAL_CONFIG } from '../config/centralConfig';
+
 export interface PuzzleInfo {
   id: number;
   code: string;
@@ -171,14 +173,18 @@ const INITIAL_EVIDENCE: EvidenceItem[] = [
 ];
 
 export const getStoredProgress = (): number[] => {
-  if (typeof window === 'undefined') return [1];
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem('444_SIGNAL_PROGRESS');
-    if (!raw) return [1]; // Puzzle 1 is always unlocked first
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [1];
+    if (!Array.isArray(parsed)) return [];
+    const valid = Array.from(
+      new Set(parsed.filter((n): n is number => typeof n === 'number' && n >= 1 && n <= 14))
+    ).sort((a, b) => a - b);
+    return valid;
   } catch {
-    return [1];
+    return [];
   }
 };
 
@@ -186,16 +192,145 @@ export const saveSolvedPuzzle = (puzzleId: number): number[] => {
   const current = getStoredProgress();
   const set = new Set(current);
   set.add(puzzleId);
-  // Auto-unlock next puzzle
-  if (puzzleId < 14) {
-    set.add(puzzleId + 1);
-  }
-  const updated = Array.from(set);
+  const updated = Array.from(set).sort((a, b) => a - b);
   if (typeof window !== 'undefined') {
     localStorage.setItem('444_SIGNAL_PROGRESS', JSON.stringify(updated));
     window.dispatchEvent(new Event('444_PROGRESS_UPDATED'));
   }
   return updated;
+};
+
+export const clearStoredProgress = (): number[] => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('444_SIGNAL_PROGRESS');
+    window.dispatchEvent(new Event('444_PROGRESS_UPDATED'));
+  }
+  return [];
+};
+
+/**
+ * Normalizes input for answer comparison: trims whitespace, collapses inner spaces, uppercases.
+ */
+export const normalizeAnswer = (str: string): string => {
+  return str.trim().toUpperCase().replace(/\s+/g, ' ');
+};
+
+export interface PuzzleValidationRule {
+  id: number;
+  acceptedAnswers: string[];
+  customValidator?: (cleanInput: string) => boolean;
+}
+
+export const PUZZLE_VALIDATION_RULES: PuzzleValidationRule[] = [
+  {
+    id: 1,
+    acceptedAnswers: ['444', '4444', '4 44 444 4444'],
+  },
+  {
+    id: 2,
+    acceptedAnswers: ['SIGNAL', '444'],
+  },
+  {
+    id: 3,
+    acceptedAnswers: ['SECTOR B-4', 'B-4', 'B4', 'SECTOR B4'],
+  },
+  {
+    id: 4,
+    acceptedAnswers: ['FREQUENCY', 'THIRD SIGNAL'],
+  },
+  {
+    id: 5,
+    acceptedAnswers: ['444ANGEL', '444 ANGEL', 'OBSERVER_444', 'OBSERVER'],
+    customValidator: (clean) => {
+      const configAns = normalizeAnswer(CENTRAL_CONFIG.MANUAL_PUZZLE_05_ANSWER || '444Angel');
+      return (
+        clean === configAns ||
+        clean === '444ANGEL' ||
+        clean === '444 ANGEL' ||
+        clean === 'OBSERVER_444' ||
+        clean === 'OBSERVER'
+      );
+    },
+  },
+  {
+    id: 6,
+    acceptedAnswers: ['444', '444.40', '444.4', '444 HZ', '444.40 MHZ'],
+  },
+  {
+    id: 7,
+    acceptedAnswers: ['62.4835 N, 34.2567 E', '62.4835, 34.2567'],
+    customValidator: (clean) => clean.includes('62.4835') || clean.includes('34.2567'),
+  },
+  {
+    id: 8,
+    acceptedAnswers: ['SHADOW TRANSMITTER', 'SHADOW TRANSMITTER 444'],
+  },
+  {
+    id: 9,
+    acceptedAnswers: ['1,2,3,4', 'SEQUENCE_COMPLETE'],
+    customValidator: (clean) => clean === 'SEQUENCE_COMPLETE' || clean === '1,2,3,4',
+  },
+  {
+    id: 10,
+    acceptedAnswers: ['SIGIL_ALIGNED', '0,0,0,0'],
+  },
+  {
+    id: 11,
+    acceptedAnswers: ['SEEK THE DEEP FREQUENCY', 'SEEK DEEP FREQUENCY'],
+  },
+  {
+    id: 12,
+    acceptedAnswers: ['444.4', '444.40', 'HARMONIC_LOCKED'],
+  },
+  {
+    id: 13,
+    acceptedAnswers: ['SECOND SIGNAL', '444', 'B-4', 'CONVERGENCE'],
+    customValidator: (clean) =>
+      clean.includes('444') ||
+      clean.includes('SECOND SIGNAL') ||
+      clean.includes('B-4') ||
+      clean.includes('CONVERGENCE'),
+  },
+  {
+    id: 14,
+    acceptedAnswers: ['SECOND_SIGNAL_INITIATED'],
+  },
+];
+
+/**
+ * Validates a user answer strictly for the given currentPuzzleId.
+ * NEVER checks other puzzles or performs global answer searching.
+ * Puzzle ID is the identity of the puzzle.
+ */
+export const validatePuzzleAnswer = (puzzleId: number, rawInput: string): boolean => {
+  const clean = normalizeAnswer(rawInput);
+  
+  // Find ONLY the target puzzle by unique puzzle ID
+  const currentPuzzle = PUZZLE_VALIDATION_RULES.find((p) => p.id === puzzleId);
+  if (!currentPuzzle) return false;
+
+  if (currentPuzzle.customValidator) {
+    return currentPuzzle.customValidator(clean);
+  }
+
+  return currentPuzzle.acceptedAnswers.some((ans) => normalizeAnswer(ans) === clean);
+};
+
+/**
+ * Submits an answer strictly for the currentPuzzleId.
+ * Validates ONLY against that puzzle.
+ * If correct, marks ONLY currentPuzzleId as completed and unlocks next puzzle.
+ */
+export const submitAnswerForPuzzle = (
+  currentPuzzleId: number,
+  userAnswer: string
+): { success: boolean; updatedProgress: number[] } => {
+  const isCorrect = validatePuzzleAnswer(currentPuzzleId, userAnswer);
+  if (isCorrect) {
+    const updated = saveSolvedPuzzle(currentPuzzleId);
+    return { success: true, updatedProgress: updated };
+  }
+  return { success: false, updatedProgress: getStoredProgress() };
 };
 
 export const getStoredEvidence = (): EvidenceItem[] => {

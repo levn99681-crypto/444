@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import { audioSystem } from '../../utils/audioSystem';
 import { CENTRAL_CONFIG } from '../../config/centralConfig';
 import { Sigil444 } from '../Sigil444';
+import { validatePuzzleAnswer } from '../../utils/progressStore';
 import bunkerImg from '../../assets/images/archive_abandoned_facility_1790568772474.jpg';
 import radarImg from '../../assets/images/archive_radar_sigil_1790568781921.jpg';
 
 interface PuzzleComponentProps {
+  puzzleId?: number;
   onSolve: (puzzleId: number) => void;
   isSolved: boolean;
 }
@@ -19,8 +21,7 @@ export const Puzzle01FirstSignal: React.FC<PuzzleComponentProps> = ({ onSolve, i
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim();
-    if (clean === '4444' || clean === '4 44 444 4444' || clean === '4444') {
+    if (validatePuzzleAnswer(1, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(1);
     } else {
@@ -115,8 +116,7 @@ export const Puzzle02Morse: React.FC<PuzzleComponentProps> = ({ onSolve, isSolve
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean === 'SIGNAL' || clean === '444') {
+    if (validatePuzzleAnswer(2, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(2);
     } else {
@@ -225,8 +225,7 @@ export const Puzzle03Photograph: React.FC<PuzzleComponentProps> = ({ onSolve, is
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase().replace(/\s+/g, ' ');
-    if (clean === 'SECTOR B-4' || clean === 'B-4' || clean === 'B4' || clean === 'SECTOR B4') {
+    if (validatePuzzleAnswer(3, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(3);
     } else {
@@ -298,8 +297,7 @@ export const Puzzle04Caesar: React.FC<PuzzleComponentProps> = ({ onSolve, isSolv
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean === 'FREQUENCY' || clean === 'THIRD SIGNAL') {
+    if (validatePuzzleAnswer(4, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(4);
     } else {
@@ -360,8 +358,7 @@ export const Puzzle05MissingAnswer: React.FC<PuzzleComponentProps> = ({ onSolve,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean === CENTRAL_CONFIG.MANUAL_PUZZLE_05_ANSWER.toUpperCase() || clean === 'OBSERVER_444' || clean === 'OBSERVER') {
+    if (validatePuzzleAnswer(5, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(5);
     } else {
@@ -464,8 +461,7 @@ export const Puzzle06AudioTransmission: React.FC<PuzzleComponentProps> = ({ onSo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean.includes('444') || clean.includes('444.4') || clean.includes('444.40')) {
+    if (validatePuzzleAnswer(6, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(6);
     } else {
@@ -585,8 +581,7 @@ export const Puzzle07MapPuzzle: React.FC<PuzzleComponentProps> = ({ onSolve, isS
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim();
-    if (clean.includes('62.4835') || clean.includes('34.2567')) {
+    if (validatePuzzleAnswer(7, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(7);
     } else {
@@ -648,8 +643,7 @@ export const Puzzle08ImageForensics: React.FC<PuzzleComponentProps> = ({ onSolve
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean === 'SHADOW TRANSMITTER' || clean === 'SHADOW TRANSMITTER 444') {
+    if (validatePuzzleAnswer(8, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(8);
     } else {
@@ -954,8 +948,7 @@ export const Puzzle11HiddenText: React.FC<PuzzleComponentProps> = ({ onSolve, is
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean === 'SEEK THE DEEP FREQUENCY' || clean === 'SEEK DEEP FREQUENCY') {
+    if (validatePuzzleAnswer(11, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(11);
     } else {
@@ -1096,8 +1089,7 @@ export const Puzzle13UnlistedSignal: React.FC<PuzzleComponentProps> = ({ onSolve
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = inputVal.trim().toUpperCase();
-    if (clean.includes('444') || clean.includes('SECOND SIGNAL') || clean.includes('B-4') || clean.includes('CONVERGENCE')) {
+    if (validatePuzzleAnswer(13, inputVal)) {
       audioSystem.playSignalUnlocked();
       onSolve(13);
     } else {

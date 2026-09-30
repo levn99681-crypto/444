@@ -23,6 +23,7 @@ interface PuzzlesHubProps {
   onSolvePuzzle: (puzzleId: number) => void;
   onNavigateToToken: () => void;
   onNavigateToFinalSignal: () => void;
+  onResetProgress?: () => void;
 }
 
 export const PuzzlesHub: React.FC<PuzzlesHubProps> = ({
@@ -30,8 +31,15 @@ export const PuzzlesHub: React.FC<PuzzlesHubProps> = ({
   onSolvePuzzle,
   onNavigateToToken,
   onNavigateToFinalSignal,
+  onResetProgress,
 }) => {
-  const [activePuzzleId, setActivePuzzleId] = useState<number>(1);
+  const [activePuzzleId, setActivePuzzleId] = useState<number>(() => {
+    // Open the first unlocked but unsolved puzzle, or 1
+    const firstAvailable = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].find(
+      (id) => !progressList.includes(id) && (id === 1 || progressList.includes(id - 1))
+    );
+    return firstAvailable || 1;
+  });
   const [showDependencyGraph, setShowDependencyGraph] = useState<boolean>(false);
 
   // Puzzle count calculation
@@ -74,9 +82,13 @@ export const PuzzlesHub: React.FC<PuzzlesHubProps> = ({
   const renderActivePuzzle = () => {
     const isSolved = progressList.includes(activePuzzleId);
     const props = {
+      puzzleId: activePuzzleId,
       onSolve: (id: number) => {
-        onSolvePuzzle(id);
-        if (id < 14) setActivePuzzleId(id + 1);
+        // Enforce that only the current active puzzle being solved can be marked completed
+        if (id === activePuzzleId) {
+          onSolvePuzzle(id);
+          if (id < 14) setActivePuzzleId(id + 1);
+        }
       },
       isSolved,
     };
@@ -149,6 +161,20 @@ export const PuzzlesHub: React.FC<PuzzlesHubProps> = ({
             >
               {showDependencyGraph ? 'HIDE GRAPH' : 'DEPENDENCY GRAPH'}
             </button>
+
+            {solvedCount > 0 && onResetProgress && (
+              <button
+                onClick={() => {
+                  audioSystem.playClick();
+                  onResetProgress();
+                  setActivePuzzleId(1);
+                }}
+                className="px-2.5 py-1.5 border border-red-950/60 bg-black text-[10px] text-[#7E858D] hover:text-red-400 hover:border-red-800 transition-colors cursor-pointer"
+                title="Reset progress to 0/14"
+              >
+                RESET
+              </button>
+            )}
 
             <div className="text-right">
               <span className="text-[10px] text-[#7E858D] uppercase tracking-widest block">

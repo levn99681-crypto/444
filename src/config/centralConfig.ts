@@ -25,7 +25,7 @@ export const CENTRAL_CONFIG = {
   TIKTOK_URL: "https://www.tiktok.com/@four444four44four4",
 
   // Puzzle 05 Manual Verification Passkey (Configurable by project owner)
-  MANUAL_PUZZLE_05_ANSWER: "OBSERVER_444",
+  MANUAL_PUZZLE_05_ANSWER: "444Angel",
 
   // Core Lore Coordinates & Telemetry
   PRIMARY_COORDINATES: "62.4835° N, 34.2567° E",

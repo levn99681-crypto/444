@@ -18,7 +18,7 @@ import { TokenVault } from './components/TokenVault';
 import { FinalSignal } from './components/FinalSignal';
 import { SecretInterruptionModal } from './components/SecretInterruptionModal';
 import { SignalHuntGame } from './components/SignalHuntGame';
-import { getStoredProgress, saveSolvedPuzzle } from './utils/progressStore';
+import { clearStoredProgress, getStoredProgress, saveSolvedPuzzle } from './utils/progressStore';
 import { audioSystem } from './utils/audioSystem';
 import { CENTRAL_CONFIG } from './config/centralConfig';
 
@@ -26,7 +26,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showOpening, setShowOpening] = useState<boolean>(false);
   const [currentSection, setCurrentSection] = useState<SectionType>('SIGNAL');
-  const [progressList, setProgressList] = useState<number[]>([1]);
+  const [progressList, setProgressList] = useState<number[]>([]);
   const [showFinalSignalCeremony, setShowFinalSignalCeremony] = useState<boolean>(false);
   const [showSignalHuntModal, setShowSignalHuntModal] = useState<boolean>(false);
 
@@ -65,6 +65,11 @@ export default function App() {
 
   const handleSolvePuzzle = (puzzleId: number) => {
     const updated = saveSolvedPuzzle(puzzleId);
+    setProgressList(updated);
+  };
+
+  const handleResetProgress = () => {
+    const updated = clearStoredProgress();
     setProgressList(updated);
   };
 
@@ -145,6 +150,7 @@ export default function App() {
               onSolvePuzzle={handleSolvePuzzle}
               onNavigateToToken={() => setCurrentSection('444 TOKEN')}
               onNavigateToFinalSignal={() => setShowFinalSignalCeremony(true)}
+              onResetProgress={handleResetProgress}
             />
           )}
 
